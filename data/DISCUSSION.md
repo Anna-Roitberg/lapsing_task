@@ -70,3 +70,19 @@ The global feature importance (mean absolute SHAP value) indicates the top drive
 3. **age**: Tertiary driver.
 
 See `shap_summary.png` for the full bar plot.
+
+### SHAP Analysis
+The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
+1. **tenure_m**: Primary driver.
+2. **coverage**: Secondary driver.
+3. **age**: Tertiary driver.
+
+See `shap_summary.png` for the full bar plot.
+
+### SHAP Analysis
+The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
+1. **tenure_m**: Primary driver.
+2. **coverage**: Secondary driver.
+3. **age**: Tertiary driver.
+
+See `shap_summary.png` for the full bar plot.
