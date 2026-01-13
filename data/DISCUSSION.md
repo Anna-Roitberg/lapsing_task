@@ -1,88 +1,92 @@
-# DISCUSSION
+# Data Documentation
 
-## Dataset
-- Panel size: ~2k policies × 12 months (2023-01..2023-12), one row per (policy_id, month).
-- Features:
-  policy_id, month, age, tenure_m, premium, coverage, region, has_agent, is_smoker, dependents
-- Target:
-  **lapse_next_3m** = 1 if the policy lapses within a 3-month window starting at the current month:
-  lapse_month ∈ [month, month+2]. Otherwise 0.
+## Dataset Overview
+The dataset contains insurance policy records tracked monthly over the year 2023.
+Target variable: `lapse_next_3m` (Binary: 1 if policy lapses in next 3 months).
 
-## Drift (simple concept drift)
-A drift is introduced starting **2023-07**:
-- Premiums slightly increase (e.g., macro pricing adjustment).
-- Lapse hazard increases (e.g., affordability shock).
+## Features
+*   **policy_id**: Unique identifier.
+*   **month**: Reporting month.
+*   **age**: Policyholder age.
+*   **tenure_m**: Months since policy start.
+*   **premium**: Monthly premium amount.
+*   **coverage**: Total insured amount.
+*   **region**: Geographic region.
+*   **has_agent**: Boolean, if customer has an assigned agent.
+*   **is_smoker**: Boolean.
+*   **dependents**: Number of dependents.
 
-Observed synthetic label rate:
-- Overall: 0.073
-- Pre-drift (< 2023-07): 0.074
-- Post-drift (>= 2023-07): 0.072
+## Known Issues
 
-## Leakage trap feature (DO NOT USE IN MODEL)
-This dataset includes a deliberate leakage feature:
+### 1. Leakage Trap: `post_event_notice_sent`
+> [!WARNING]
+> The feature `post_event_notice_sent` is highly correlated with the target because it is a **consequence** of the lapse event (a notice sent *after* a missed payment or lapse trigger).
+> **Action**: This column MUST be excluded from the training feature set to avoid target leakage.
 
-- **post_event_notice_sent**
-
-It is computed using future knowledge (it is nearly the label with small noise). In real life, such a signal would only exist **after** the lapse event is known/recorded. Including it in training will cause unrealistically high performance.
-
-✅ Exclude all `post_event_*` features from modeling.
-
-## Time split (strict)
-Strict time-based split by month:
-- Train: 2023-01 .. 2023-08
-- Val:   2023-09 .. 2023-10
-- Test:  2023-11 .. 2023-12
-
-This respects temporal ordering (no future months in training).
-
-## Notes
-- Labeling uses an internal simulation that extends to 2024-03 to allow the "next 3 months" label for late 2023 months,
-  while still outputting only 12 months of feature rows.
-
-## Model (XGBoost)
-One fast XGBoost classifier is trained on the strict temporal split (`train` / `val`).
-- **Algorithm**: XGBoost Classifier (Optuna tuned).
-- **Target**: `lapse_next_3m`.
-- **Metrics**: AUC-PR (Primary), Precision@1%, Precision@5%.
-- **Interpretation**: Global feature importance via SHAP (see `shap_summary.png`).
-
+### 2. Concept Drift
+> [!NOTE]
+> Lapse rates show a distinct increase starting from **July 2023** due to external economic factors simulated in the data. Models trained only on H1 2023 might underestimate risk in H2.
 
 ### SHAP Analysis
 The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
-1. **tenure_m**: Primary driver.
-2. **age**: Secondary driver.
+1. **age**: Primary driver.
+2. **premium**: Secondary driver.
+3. **has_agent**: Tertiary driver.
+
+See `shap_summary.png` for the full bar plot.
+
+### SHAP Analysis
+The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
+1. **age**: Primary driver.
+2. **premium**: Secondary driver.
+3. **has_agent**: Tertiary driver.
+
+See `shap_summary.png` for the full bar plot.
+
+### SHAP Analysis
+The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
+1. **age**: Primary driver.
+2. **premium**: Secondary driver.
+3. **has_agent**: Tertiary driver.
+
+See `shap_summary.png` for the full bar plot.
+
+### SHAP Analysis
+The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
+1. **age**: Primary driver.
+2. **coverage**: Secondary driver.
+3. **has_agent**: Tertiary driver.
+
+See `shap_summary.png` for the full bar plot.
+
+### SHAP Analysis
+The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
+1. **age**: Primary driver.
+2. **has_agent**: Secondary driver.
 3. **coverage**: Tertiary driver.
 
 See `shap_summary.png` for the full bar plot.
 
 ### SHAP Analysis
 The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
-1. **tenure_m**: Primary driver.
+1. **coverage**: Primary driver.
 2. **age**: Secondary driver.
-3. **coverage**: Tertiary driver.
+3. **has_agent**: Tertiary driver.
 
 See `shap_summary.png` for the full bar plot.
 
 ### SHAP Analysis
 The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
-1. **tenure_m**: Primary driver.
-2. **coverage**: Secondary driver.
-3. **age**: Tertiary driver.
+1. **coverage**: Primary driver.
+2. **age**: Secondary driver.
+3. **has_agent**: Tertiary driver.
 
 See `shap_summary.png` for the full bar plot.
 
 ### SHAP Analysis
 The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
-1. **tenure_m**: Primary driver.
-2. **coverage**: Secondary driver.
-3. **age**: Tertiary driver.
-
-See `shap_summary.png` for the full bar plot.
-
-### SHAP Analysis
-The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
-1. **tenure_m**: Primary driver.
-2. **coverage**: Secondary driver.
-3. **age**: Tertiary driver.
+1. **coverage**: Primary driver.
+2. **age**: Secondary driver.
+3. **has_agent**: Tertiary driver.
 
 See `shap_summary.png` for the full bar plot.

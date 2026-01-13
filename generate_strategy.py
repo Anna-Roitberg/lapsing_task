@@ -14,12 +14,8 @@ def load_system():
     print("Loading XGBoost Model...")
     model = joblib.load('churn_model_xgb.joblib')
     
-    print("Loading Encoder (fitting on train.csv)...")
-    # We need to fit the encoder on the original training data to match categories
-    train_df = pd.read_csv('data/train.csv')
-    encoder = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
-    if 'region' in train_df.columns:
-        encoder.fit(train_df[['region']])
+    print("Loading Feature Encoder...")
+    encoder = joblib.load('feature_encoder.joblib')
     
     print("Initializing RAG System...")
     rag = MinimalRAG()
@@ -46,9 +42,28 @@ def prepare_and_score_data(file_path, model, encoder):
     # Create feature matrix X
     X = df[feature_cols].copy()
     
-    # Apply Encoding
-    if 'region' in X.columns:
-        X['region'] = encoder.transform(X[['region']])
+    # Bin features (same as training)
+    # Age binning
+    X['age'] = pd.cut(X['age'], 
+                     bins=[0, 30, 45, 60, 150], 
+                     labels=['18-30', '31-45', '46-60', '61+'],
+                     right=True)
+    
+    # Premium binning
+    X['premium'] = pd.cut(X['premium'], 
+                         bins=[0, 100, 150, 200, 300, 10000], 
+                         labels=['<100', '100-150', '150-200', '200-300', '300+'],
+                         right=True)
+    
+    # Tenure binning
+    X['tenure_m'] = pd.cut(X['tenure_m'], 
+                          bins=[-1, 6, 12, 24, 48, 10000], 
+                          labels=['0-6m', '6-12m', '12-24m', '24-48m', '48m+'],
+                          right=True)
+    
+    # Apply Encoding for all categorical features
+    X[['region', 'age', 'premium', 'tenure_m']] = encoder.transform(X[['region', 'age', 'premium', 'tenure_m']])
+
         
     # Predict
     probs = model.predict_proba(X)[:, 1]

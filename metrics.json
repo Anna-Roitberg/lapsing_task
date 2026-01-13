@@ -1,5 +1,5 @@
 {
-  "auc_pr": 0.05830724543843964,
-  "precision_at_1_pct": 0.025,
-  "precision_at_5_pct": 0.045
+  "auc_pr": 0.5239713161616462,
+  "precision_at_1_pct": 0.8,
+  "precision_at_5_pct": 0.655
 }

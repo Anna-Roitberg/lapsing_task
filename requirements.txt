@@ -1,0 +1,18 @@
+# Requirements for Insurance Lapse Prediction and Strategy Generation
+# Core Data Science
+pandas
+numpy
+scikit-learn
+
+# Machine Learning
+xgboost
+optuna
+
+# Model Interpretation
+shap
+
+# Visualization
+matplotlib
+
+# Model Persistence
+joblib

@@ -10,9 +10,9 @@ from sklearn.metrics import average_precision_score, precision_score, roc_auc_sc
 from sklearn.preprocessing import OrdinalEncoder
 
 def load_data(data_dir='data'):
-    train = pd.read_csv(f'{data_dir}/train.csv')
-    val = pd.read_csv(f'{data_dir}/val.csv')
-    test = pd.read_csv(f'{data_dir}/test.csv')
+    train = pd.read_csv(f'{data_dir}/train_gpt.csv')
+    val = pd.read_csv(f'{data_dir}/val_gpt.csv')
+    test = pd.read_csv(f'{data_dir}/test_gpt.csv')
     return train, val, test
 
 def precision_at_k(y_true, y_prob, k_percent):
@@ -38,16 +38,45 @@ def train_xgboost_optuna():
     print(f"Features: {features}")
     print(f"Train: {train.shape}, Val: {val.shape}, Test: {test.shape}")
     
-    # Cat encoding
-    cat_cols = ['region'] # Add others if string
+    # Feature binning into intervals
+    def bin_features(df):
+        df = df.copy()
+        
+        # Age binning into 4 intervals
+        df['age'] = pd.cut(df['age'], 
+                          bins=[0, 30, 45, 60, 150], 
+                          labels=['18-30', '31-45', '46-60', '61+'],
+                          right=True)
+        
+        # Premium binning into 5 intervals
+        df['premium'] = pd.cut(df['premium'], 
+                              bins=[0, 100, 150, 200, 300, 10000], 
+                              labels=['<100', '100-150', '150-200', '200-300', '300+'],
+                              right=True)
+        
+        # Tenure binning into 5 intervals (months)
+        df['tenure_m'] = pd.cut(df['tenure_m'], 
+                               bins=[-1, 6, 12, 24, 48, 10000], 
+                               labels=['0-6m', '6-12m', '12-24m', '24-48m', '48m+'],
+                               right=True)
+        return df
     
-    # Simple Ordinal Encoding for XGBoost
-    for col in cat_cols:
-        if col in train.columns:
-            le = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
-            train[col] = le.fit_transform(train[[col]])
-            val[col] = le.transform(val[[col]])
-            test[col] = le.transform(test[[col]])
+    train = bin_features(train)
+    val = bin_features(val)
+    test = bin_features(test)
+    
+    # Cat encoding - use single encoder for all categorical features
+    cat_cols = ['region', 'age', 'premium', 'tenure_m'] # All binned features
+    
+    # Fit one encoder for all categorical columns
+    encoder = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
+    encoder.fit(train[cat_cols])
+    
+    # Transform all datasets
+    train[cat_cols] = encoder.transform(train[cat_cols])
+    val[cat_cols] = encoder.transform(val[cat_cols])
+    test[cat_cols] = encoder.transform(test[cat_cols])
+
 
     X_train, y_train = train[features], train[target]
     X_val, y_val = val[features], val[target]
@@ -112,6 +141,7 @@ def train_xgboost_optuna():
     
     # 6. Save Artifacts
     joblib.dump(model, 'churn_model_xgb.joblib')
+    joblib.dump(encoder, 'feature_encoder.joblib')
     with open('metrics.json', 'w') as f:
         json.dump(metrics, f, indent=2)
         
