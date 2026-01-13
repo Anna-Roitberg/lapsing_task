@@ -41,7 +41,7 @@ def infer_context(row):
 
 def main():
     # Use the requested file
-    leads_file = 'data/lead_customers_3.csv'
+    leads_file = 'data/three_lead_profiles_small.csv'
     
     if not os.path.exists(leads_file):
         print(f"Error: {leads_file} not found.")

@@ -1,6 +1,0 @@
-policy_id,age,region,has_agent,is_smoker,dependents,premium,coverage,month,tenure_m,split
-P01479,60,coastal,1,0,0,155.9,18180.01,2023-12,0,test
-P00389,28,west,1,0,1,194.79,25163.86,2023-12,0,test
-P00125,48,south,0,0,2,115.74,14468.7,2023-11,0,test
-P01852,48,coastal,0,0,0,249.92,31356.44,2023-12,0,test
-P00103,48,south,0,0,0,184.36,21121.34,2023-11,0,test

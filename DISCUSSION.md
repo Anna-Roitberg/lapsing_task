@@ -17,6 +17,12 @@ This dataset is **synthetic** but designed to look realistic for training a time
 - `is_smoker`: small increase in lapse (higher premium / risk profile)
 - `dependents`: small increase in lapse (household budget pressure)
 
+## Discussion: Data generation issue (POC)
+
+At first, I generated “realistic-looking” synthetic data, but I didn’t define which features should be correlated with the target (lapse_next_3m) and in what direction. Because of that, the target was almost random relative to the inputs, and the model trained on this data performed poorly (AUC ≈ 0.17).
+
+After I added clear relationships (e.g., higher risk for younger customers / higher premiums / shorter tenure, etc.), I managed to produce data with a learnable signal and a meaningful POC.
+
 ## Lapse probability design (real-like distribution)
 The target is generated from a logistic model with noise:
 - **Younger** customers are more likely to lapse
@@ -58,10 +64,8 @@ This enforces a strict **forward-chaining** setup and naturally contains the dri
 > [!NOTE] Lapse rates show a distinct increase starting from **July 2023** due to external economic factors simulated in the data. Models trained only on H1 2023 might underestimate risk in H2.
 
 ### SHAP Analysis
-
 The global feature importance (mean absolute SHAP value) indicates the top drivers of lapse risk:
-
-1. **coverage**: Primary driver.
+1. **premium**: Primary driver.
 2. **age**: Secondary driver.
 3. **has_agent**: Tertiary driver.
 

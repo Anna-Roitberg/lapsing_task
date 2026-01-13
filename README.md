@@ -45,7 +45,7 @@ Trains the XGBoost lapse prediction model with:
 
 #### `generate_strategy.py`
 Generates retention strategies for at-risk customers:
-- **Input**: `data/lead_policies_3.csv` (or test data)
+- **Input**: `data/three_test_customers_high_med_low_risk.csv` (or test data)
 - **Process**:
   1. Loads model and encoder
   2. Predicts lapse probability
@@ -55,7 +55,7 @@ Generates retention strategies for at-risk customers:
 
 #### `generate_conversion_plan.py`
 Creates conversion plans for new insurance leads:
-- **Input**: `data/lead_customers_3.csv`
+- **Input**: `data/three_lead_profiles_small.csv`
 - **Process**:
   1. Infers customer context (`channel`, `needs`, `objections`) from demographics
   2. Retrieves objection handling advice (RAG from `rag_docs/leads/`)
